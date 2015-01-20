@@ -14,7 +14,11 @@ uint16_t stack[16],sp;
 uint8_t keyboard[16];
 
 uint8_t killFlag = 0;
-
+/*
+void (*C8_Table[16])(void) = {C8_SYSTEM, C8_JP_nnn, C8_CALL_nnn, C8_SE_x_nn,
+                              C8_SNE_x_nn, C8_SE_x_y, C8_LD_x_nn, C8_ADD_x_nn,
+                              C8_ARITHMETIC, C8_SNE_x_y, };
+*/
 void init() {
     I = 0, sp = 0;
 	timer_delay = 0, timer_sound = 0;
@@ -23,8 +27,10 @@ void init() {
 
 void cycle() {
 	uint16_t op = memory[PC] << 8 | memory[PC + 1];
-	printf("%04x ",op);
+	
     
+    
+    printf("%04x ",op);
     PC+=2;
     if (PC >= 0xfff) { killFlag = 1; }
 
