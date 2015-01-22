@@ -1,11 +1,16 @@
 
-void C8_OP_Invalid();
 
+//CPU tick
+void C8_tick();
+
+// Lookup tables
 void C8_Lookup_0xxx();
 void C8_Lookup_8xxx();
 void C8_Lookup_Exxx();
 void C8_Lookup_Fxxx();
 
+// OP codes
+void C8_OP_Invalid();
 void C8_OP_00EE(); // RET
 void C8_OP_1nnn(); // JMP
 void C8_OP_2nnn(); // CALL

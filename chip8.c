@@ -235,7 +235,7 @@ void C8_OP_Fx65() { // LD MEM
 	
 }
 
-void cycle() {
+void C8_tick() {
     static void (*C8_OPTable[17])(void) = {
         C8_Lookup_0xxx, C8_OP_1nnn, C8_OP_2nnn, C8_OP_3xnn,
         C8_OP_4xnn, C8_OP_5xy0, C8_OP_6xnn, C8_OP_7xnn,
@@ -264,10 +264,21 @@ int main(int argc, char **argv) {
         return 1;
     }
     init();	
-	load(argv[1]);
-
+		load(argv[1]);
+		
+		/*
+		int W = 64;
+		int H = 32;
+		
+		SDL_Init(SDL_INIT_VIDEO);
+		SDL_Window* win = SDL_CreateWindow("Chip8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, W, H, SDL_WINDOW_SHOWN);
+		SDL_Surface* surface = SDL_GetWindowSurface(win);
+		SDL_Renderer* renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
+		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+		*/
+		
     for(;;) {
-	    cycle();
+	    C8_tick();
         if (killFlag) break;
     }
 	

@@ -1,6 +1,6 @@
 CC=cc
 CFLAGS=-c -Wall
-LDFLAGS=
+LDFLAGS= -lSDL2
 SOURCES=chip8.c
 OBJECTS=$(SOURCES:.cp=.o)
 EXECUTABLE=bin/chip8
