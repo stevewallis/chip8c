@@ -51,12 +51,12 @@ void C8_OP_XOR_8xy3() { V[(op&0x0f00)>>8] = V[(op&0x0f00)>>8]^V[(op&0x00f0)>>4];
 void C8_OP_ADD_8xy4() { 
     uint16_t sum = V[(op&0x0f00)>>8]+V[(op&0x00f0)>>4];
     V[(op&0x0f00)>>8] = (sum&0xff);
-    V[0xf] = (sum&0xff00)>>8; //fix this!
+    V[0xf] = ((sum&0xff00)>>8)?1:0;
 }
 void C8_OP_SUB_8xy5() {}
 void C8_OP_SHR_8xy6() {
-    V[0xf] = (V[(op&0x0f00)>>8]&1);
-    V[(op&0x0f00)>>8] = V[(op&0x0f00)>>8]>>1;
+    V[0xf] = (V[(op&0x0f00)>>8]&0x1);
+    V[(op&0x0f00)>>8] = V[(op&0x0f00)>>8]>>1; 
 }
 void C8_OP_SUBN_8xy7() {}
 void C8_OP_SHL_8xyE() {}
