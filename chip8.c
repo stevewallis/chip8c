@@ -1,7 +1,10 @@
 #include "chip8.h"
+#include "chip8_fontset.h"
 #include <stdio.h>
 #include <stdint.h>
-#include <SDL2/SDL.h>
+#include <stdlib.h>
+#include <string.h>
+//#include <SDL2/SDL.h>
 
 #define Vx V[(op&0x0f00)>>8]
 #define Vy V[(op&0x00f0)>>4]
@@ -12,21 +15,21 @@ uint16_t I; //index register
 uint16_t PC; //program counter;
 uint16_t op; //current opcode;
 
-uint8_t display[64*32];
+uint8_t vmem[256]; //64 x 32
 uint8_t timer_delay, timer_sound;
 
-uint16_t stack[16],sp;
+uint16_t stack[16] ,sp;
 
 uint8_t keyboard[16];
 
 uint8_t killFlag = 0;
 
-
 void init() {
     I = 0, sp = 0;
-		timer_delay = 0, timer_sound = 0;
-		PC = 0x200; //program always starts here in memory
+	timer_delay = 0, timer_sound = 0;
+	PC = 0x200; //program always starts here in memory
     op = 0;
+    memcpy(&memory[C8_FONTSET_BASE], chip8_fontset, C8_FONTSET_SIZE);
 }
 
 void C8_OP_Invalid(){ killFlag = 1; printf("%04x : INVALID OP CODE!\n",op);}
@@ -184,11 +187,17 @@ void C8_OP_Bnnn() { // JMP V0
 }
 
 void C8_OP_Cxnn() { // RND
-	printf("%04x : RND NOT DONE YET\n",op);
+    V[(op&0x0f00)>>8] = (rand() % 0xff) & (op&0x00ff);
 }
 
 void C8_OP_Dxyn() { // DRW x y n
 	printf("%04x : DRW NOT DONE YET\n",op);
+
+    /*uint8_t i,n;
+    n = op&0xf;
+    for(i=0; i<n; i++) {
+        vmem[] = 
+    }*/
 }
 
 void C8_OP_Ex9E() { // SKP
@@ -204,7 +213,7 @@ void C8_OP_Fx07() { // MOV DT x
 }
 
 void C8_OP_Fx0A() { // WAITKEY
-	
+	printf("%04x : WAITKEY NOT DONE YET\n",op);
 }
 
 void C8_OP_Fx15() { // MOV x DT 
@@ -220,19 +229,25 @@ void C8_OP_Fx1E() { // MOV ADD I
 }
 
 void C8_OP_Fx29() { // LD F
-	
+    I = memory[C8_FONTSET_BASE + ((V[(op&0x0f00)>>8]&0xf) * C8_FONTSET_CHAR_SIZE)];
 }
 
 void C8_OP_Fx33() { // LD B
-	
+	printf("%04x : LD B NOT DONE YET\n",op);
 }
 
-void C8_OP_Fx55() { // LD MEM
-	
+void C8_OP_Fx55() { // LD MEM[I] V0Vx
+	uint8_t x = (op&0x0f00)>>8;
+    for (uint8_t i=0;i<=x;i++) {
+        memory[I+i] = V[i]; 
+    }
 }
 
-void C8_OP_Fx65() { // LD MEM
-	
+void C8_OP_Fx65() { // LD V0Vx MEM[I]
+	uint8_t x = (op&0x0f00)>>8;
+    for (uint8_t i=0;i<=x;i++) {
+        V[i] = memory[I+i]; 
+    }
 }
 
 void C8_tick() {
@@ -244,7 +259,7 @@ void C8_tick() {
         C8_OP_Invalid};
 
 	op = memory[PC] << 8 | memory[PC + 1];
-  PC+=2;
+    PC+=2;
 	C8_OPTable[(op&0xf000)>>12]();
 }
 

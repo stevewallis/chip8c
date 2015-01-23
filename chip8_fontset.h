@@ -1,3 +1,8 @@
+#include <stdint.h>
+
+#define C8_FONTSET_BASE 0
+#define C8_FONTSET_SIZE 80
+#define C8_FONTSET_CHAR_SIZE 5
 uint8_t chip8_fontset[80] = { 
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
     0x20, 0x60, 0x20, 0x20, 0x70, // 1
