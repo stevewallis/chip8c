@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <SDL2/SDL.h>
+#include <SDL2/SDL.h>
 
 #define Vx V[(op&0x0f00)>>8]
 #define Vy V[(op&0x00f0)>>4]
@@ -23,6 +23,7 @@ uint16_t stack[16] ,sp;
 uint8_t keyboard[16];
 
 uint8_t killFlag = 0;
+uint8_t drawFlag = 0;
 
 void init() {
     I = 0, sp = 0;
@@ -191,13 +192,16 @@ void C8_OP_Cxnn() { // RND
 }
 
 void C8_OP_Dxyn() { // DRW x y n
-	printf("%04x : DRW NOT DONE YET\n",op);
+	//printf("%04x : DRW NOT DONE YET\n",op);
+    uint8_t n,x,y;
+    n = op&0xf; //number of bytes (ie height of sprite).
+    x = V[(op&0x0f00)>>8];
+    y = V[(op&0x0f00)>>4];
+    V[0xf] = 0;
 
-    /*uint8_t i,n;
-    n = op&0xf;
-    for(i=0; i<n; i++) {
-        vmem[] = 
-    }*/
+    for(int i=0; i<n; i++) {
+        //vmem[] = 
+    }
 }
 
 void C8_OP_Ex9E() { // SKP
@@ -279,23 +283,87 @@ int main(int argc, char **argv) {
         return 1;
     }
     init();	
-		load(argv[1]);
-		
-		/*
-		int W = 64;
-		int H = 32;
-		
-		SDL_Init(SDL_INIT_VIDEO);
-		SDL_Window* win = SDL_CreateWindow("Chip8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, W, H, SDL_WINDOW_SHOWN);
-		SDL_Surface* surface = SDL_GetWindowSurface(win);
-		SDL_Renderer* renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
-		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
-		*/
-		
+	load(argv[1]);
+	
+	int W = 640;
+	int H = 320;
+	
+	SDL_Init(SDL_INIT_VIDEO);
+	SDL_Window* win = SDL_CreateWindow("Chip8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, W, H, SDL_WINDOW_SHOWN);
+	SDL_Surface* surface = SDL_GetWindowSurface(win);
+	
+    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0xff, 0xff, 0xff));
+    SDL_UpdateWindowSurface(win);
+
+    //SDL_Renderer* renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
+	//SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+	/**/
+	SDL_Event e;	
     for(;;) {
+        while(SDL_PollEvent(&e) != 0) {
+            switch (e.type) {
+                case SDL_QUIT:
+                    killFlag = 1;
+                    break;
+                case SDL_KEYDOWN:
+                    switch(e.key.keysym.sym) {
+                        case SDLK_1: keyboard[0x0]=1; break;
+                        case SDLK_2: keyboard[0x1]=1; break; 
+                        case SDLK_3: keyboard[0x2]=1; break; 
+                        case SDLK_4: keyboard[0x3]=1; break; 
+                        case SDLK_q: keyboard[0x4]=1; break; 
+                        case SDLK_w: keyboard[0x5]=1; break; 
+                        case SDLK_e: keyboard[0x6]=1; break; 
+                        case SDLK_r: keyboard[0x7]=1; break; 
+                        case SDLK_a: keyboard[0x8]=1; break; 
+                        case SDLK_s: keyboard[0x9]=1; break; 
+                        case SDLK_d: keyboard[0xa]=1; break; 
+                        case SDLK_f: keyboard[0xb]=1; break; 
+                        case SDLK_z: keyboard[0xc]=1; break; 
+                        case SDLK_x: keyboard[0xd]=1; break; 
+                        case SDLK_c: keyboard[0xe]=1; break; 
+                        case SDLK_v: keyboard[0xf]=1; break;
+                        default: break; 
+                    } 
+                case SDL_KEYUP:
+                    switch(e.key.keysym.sym) {
+                        case SDLK_1: keyboard[0x0]=0; break;
+                        case SDLK_2: keyboard[0x1]=0; break; 
+                        case SDLK_3: keyboard[0x2]=0; break; 
+                        case SDLK_4: keyboard[0x3]=0; break; 
+                        case SDLK_q: keyboard[0x4]=0; break; 
+                        case SDLK_w: keyboard[0x5]=0; break; 
+                        case SDLK_e: keyboard[0x6]=0; break; 
+                        case SDLK_r: keyboard[0x7]=0; break; 
+                        case SDLK_a: keyboard[0x8]=0; break; 
+                        case SDLK_s: keyboard[0x9]=0; break; 
+                        case SDLK_d: keyboard[0xa]=0; break; 
+                        case SDLK_f: keyboard[0xb]=0; break; 
+                        case SDLK_z: keyboard[0xc]=0; break; 
+                        case SDLK_x: keyboard[0xd]=0; break; 
+                        case SDLK_c: keyboard[0xe]=0; break; 
+                        case SDLK_v: keyboard[0xf]=0; break;
+                        default: break; 
+                    } 
+                    break;          
+                default:
+                    break;
+            }
+        }
+
 	    C8_tick();
+        if (drawFlag) {
+
+            drawFlag = 0;
+        }
         if (killFlag) break;
+        //SDL_Delay(10);
     }
+
+
+    SDL_FreeSurface(surface);
+    SDL_DestroyWindow(win);
+    SDL_Quit();
 	
 	return 0;
 }
