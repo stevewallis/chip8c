@@ -203,10 +203,10 @@ void C8_OP_Dxyn() { // DRW x y n
         b = memory[I+i];
         for(int j=0; j<8; j++) {
             if((b & (0x80 >> j)) != 0) {
-                /*if (vmem[x + j + ((y + i) * 64)] == 0x1) {
+                if ((vmem[x + j + ((y + i) * 8)]&(0x80 >> j)) != 0x0) {
                     V[0xf] = 1;
                 }
-                vmem[x + j + ((y + i) * 64)]^=0x1; */
+                vmem[x + j + ((y + i) * 8)]^=(0x80 >> j); 
             }
         }
     }
