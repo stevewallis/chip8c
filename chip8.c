@@ -15,7 +15,7 @@ uint16_t I; //index register
 uint16_t PC; //program counter;
 uint16_t op; //current opcode;
 
-uint8_t vmem[256]; //64 x 32
+uint8_t vmem[C8_DISPLAY_WIDTH][C8_DISPLAY_HEIGHT]; //64 x 32
 uint8_t timer_delay, timer_sound;
 
 uint16_t stack[16] ,sp;
@@ -203,10 +203,11 @@ void C8_OP_Dxyn() { // DRW x y n
         b = memory[I+i];
         for(int j=0; j<8; j++) {
             if((b & (0x80 >> j)) != 0) {
-                if ((vmem[x + j + ((y + i) * 8)]&(0x80 >> j)) != 0x0) {
-                    V[0xf] = 1;
-                }
-                vmem[x + j + ((y + i) * 8)]^=(0x80 >> j); 
+               printf("%d\n", (x+j)%C8_DISPLAY_WIDTH);
+               if (vmem[(x+j)%C8_DISPLAY_WIDTH][(y+i)%C8_DISPLAY_HEIGHT] == 0x1) {
+                V[0xf] = 1;
+               }
+               vmem[(x+j)%C8_DISPLAY_WIDTH][(y+i)%C8_DISPLAY_HEIGHT] ^= 0x1;
             }
         }
     }
@@ -246,7 +247,9 @@ void C8_OP_Fx29() { // LD F
 }
 
 void C8_OP_Fx33() { // LD B
-    printf("%04x : LD B NOT DONE YET\n",op);
+    memory[I] = V[(op&0x0f00)>>8] / 100;
+    memory[I+1] = (V[(op&0x0f00)>>8] / 10) % 10;
+    memory[I+2] = V[(op&0x0f00)>>8] % 10;
 }
 
 void C8_OP_Fx55() { // LD MEM[I] V0Vx
@@ -274,6 +277,8 @@ void C8_tick() {
     op = memory[PC] << 8 | memory[PC + 1];
     PC+=2;
     C8_OPTable[(op&0xf000)>>12]();
+    if (timer_delay > 0) --timer_delay;
+    if (timer_sound > 0) --timer_sound;
 }
 
 int load(char *file) {
@@ -284,6 +289,16 @@ int load(char *file) {
     fclose(fp);
 
     return 0;
+}
+
+void drawme() {
+    for (int i = 0; i < C8_DISPLAY_HEIGHT; i++) {
+        for (int j=0; j<C8_DISPLAY_WIDTH; j++) {
+            printf((vmem[i][j]?"x":"."));
+        }
+        printf("\n");
+    }
+    printf("\n");
 }
 
 int main(int argc, char **argv) {
@@ -297,7 +312,7 @@ int main(int argc, char **argv) {
     int W = 640;
     int H = 320;
     
-    /*SDL_Init(SDL_INIT_VIDEO);
+    SDL_Init(SDL_INIT_VIDEO);
     SDL_Window* win = SDL_CreateWindow("Chip8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, W, H, SDL_WINDOW_SHOWN);
     SDL_Surface* surface = SDL_GetWindowSurface(win);
     
@@ -306,10 +321,10 @@ int main(int argc, char **argv) {
 
     //SDL_Renderer* renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
     //SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
-    */
-    //SDL_Event e;	
+    
+    SDL_Event e;	
     for(;;) {
-       /* while(SDL_PollEvent(&e) != 0) {
+        while(SDL_PollEvent(&e) != 0) {
             switch (e.type) {
                 case SDL_QUIT:
                     killFlag = 1;
@@ -359,20 +374,21 @@ int main(int argc, char **argv) {
                     break;
             }
         }
-*/
+
         C8_tick();
-        //printf("%04x ",op);
         if (drawFlag) {
             drawFlag = 0;
+            drawme();
         }
         if (killFlag) break;
-  //      SDL_Delay(10);
+        SDL_Delay(16);
     }
 
+    drawme();
 
-    //SDL_FreeSurface(surface);
-    //SDL_DestroyWindow(win);
-    //SDL_Quit();
+    SDL_FreeSurface(surface);
+    SDL_DestroyWindow(win);
+    SDL_Quit();
 
     return 0;
 }

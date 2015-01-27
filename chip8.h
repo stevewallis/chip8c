@@ -1,4 +1,6 @@
 
+#define C8_DISPLAY_WIDTH 64
+#define C8_DISPLAY_HEIGHT 32
 
 //CPU tick
 void C8_tick();

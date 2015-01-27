@@ -1,12 +1,19 @@
-CC=cc
-CFLAGS= -ggdb -Wall
+CC=gcc
+CFLAGS=-c -ggdb -Wall
 LDFLAGS= -lSDL2
 SOURCES=chip8.c
-OBJECTS=$(SOURCES:.cp=.o)
+OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=bin/chip8
 
 all: $(SOURCES) $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o $@
+	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
+.c.o:
+	$(CC) $(CFLAGS) $< -o $@
+
+clean:
+	rm bin/chip8
+	rm chip8.o
+	
