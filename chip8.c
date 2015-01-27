@@ -192,16 +192,25 @@ void C8_OP_Cxnn() { // RND
 }
 
 void C8_OP_Dxyn() { // DRW x y n
-    //printf("%04x : DRW NOT DONE YET\n",op);
-    uint8_t n,x,y;
+    uint8_t n,x,y,b;
     n = op&0xf; //number of bytes (ie height of sprite).
     x = V[(op&0x0f00)>>8];
     y = V[(op&0x0f00)>>4];
     V[0xf] = 0;
+    
 
     for(int i=0; i<n; i++) {
-        //vmem[] = 
+        b = memory[I+i];
+        for(int j=0; j<8; j++) {
+            if((b & (0x80 >> j)) != 0) {
+                /*if (vmem[x + j + ((y + i) * 64)] == 0x1) {
+                    V[0xf] = 1;
+                }
+                vmem[x + j + ((y + i) * 64)]^=0x1; */
+            }
+        }
     }
+    drawFlag = 1;
 }
 
 void C8_OP_Ex9E() { // SKP
@@ -288,7 +297,7 @@ int main(int argc, char **argv) {
     int W = 640;
     int H = 320;
     
-    SDL_Init(SDL_INIT_VIDEO);
+    /*SDL_Init(SDL_INIT_VIDEO);
     SDL_Window* win = SDL_CreateWindow("Chip8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, W, H, SDL_WINDOW_SHOWN);
     SDL_Surface* surface = SDL_GetWindowSurface(win);
     
@@ -297,10 +306,10 @@ int main(int argc, char **argv) {
 
     //SDL_Renderer* renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
     //SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
-    /**/
-    SDL_Event e;	
+    */
+    //SDL_Event e;	
     for(;;) {
-        while(SDL_PollEvent(&e) != 0) {
+       /* while(SDL_PollEvent(&e) != 0) {
             switch (e.type) {
                 case SDL_QUIT:
                     killFlag = 1;
@@ -350,20 +359,20 @@ int main(int argc, char **argv) {
                     break;
             }
         }
-
+*/
         C8_tick();
+        //printf("%04x ",op);
         if (drawFlag) {
-
             drawFlag = 0;
         }
         if (killFlag) break;
-        //SDL_Delay(10);
+  //      SDL_Delay(10);
     }
 
 
-    SDL_FreeSurface(surface);
-    SDL_DestroyWindow(win);
-    SDL_Quit();
+    //SDL_FreeSurface(surface);
+    //SDL_DestroyWindow(win);
+    //SDL_Quit();
 
     return 0;
 }
