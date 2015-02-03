@@ -241,7 +241,7 @@ void C8_OP_Fx1E() { // MOV ADD I
 }
 
 void C8_OP_Fx29() { // LD F
-    I = memory[C8_FONTSET_BASE + ((V[(op&0x0f00)>>8]&0xf) * C8_FONTSET_CHAR_SIZE)];
+    I = C8_FONTSET_BASE + ((V[(op&0x0f00)>>8]&0xf) * C8_FONTSET_CHAR_SIZE);
 }
 
 void C8_OP_Fx33() { // LD B
