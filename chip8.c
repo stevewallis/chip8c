@@ -6,9 +6,6 @@
 #include <string.h>
 #include <SDL2/SDL.h>
 
-#define Vx V[(op&0x0f00)>>8]
-#define Vy V[(op&0x00f0)>>4]
-
 uint8_t memory[0xfff];
 uint8_t V[16]; //data registers
 uint16_t I; //index register
@@ -195,15 +192,16 @@ void C8_OP_Dxyn() { // DRW x y n
     uint8_t n,x,y,b;
     n = op&0xf; //number of bytes (ie height of sprite).
     x = V[(op&0x0f00)>>8];
-    y = V[(op&0x0f00)>>4];
+    y = V[(op&0x00f0)>>4];
     V[0xf] = 0;
     
+    //printf("Draw sprite size %d at (%d, %d)\n", n,x,y);
 
     for(int i=0; i<n; i++) {
         b = memory[I+i];
         for(int j=0; j<8; j++) {
             if((b & (0x80 >> j)) != 0) {
-               printf("%d\n", (x+j)%C8_DISPLAY_WIDTH);
+               //printf("%d, %d\n",x,y);
                if (vmem[(x+j)%C8_DISPLAY_WIDTH][(y+i)%C8_DISPLAY_HEIGHT] == 0x1) {
                 V[0xf] = 1;
                }
@@ -291,16 +289,6 @@ int load(char *file) {
     return 0;
 }
 
-void drawme() {
-    for (int i = 0; i < C8_DISPLAY_HEIGHT; i++) {
-        for (int j=0; j<C8_DISPLAY_WIDTH; j++) {
-            printf((vmem[i][j]?"x":"."));
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
-
 int main(int argc, char **argv) {
     if (argc != 2) {
         printf("NO ROM SPECIFIED\n");
@@ -308,20 +296,26 @@ int main(int argc, char **argv) {
     }
     init();	
     load(argv[1]);
-    
-    int W = 640;
-    int H = 320;
+
+    static int SCALE = 10;
+
+    int W = 64*SCALE;
+    int H = 32*SCALE;
     
     SDL_Init(SDL_INIT_VIDEO);
     SDL_Window* win = SDL_CreateWindow("Chip8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, W, H, SDL_WINDOW_SHOWN);
     SDL_Surface* surface = SDL_GetWindowSurface(win);
     
-    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0xff, 0xff, 0xff));
+    //SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0xff, 0xff, 0xff));
     SDL_UpdateWindowSurface(win);
 
     //SDL_Renderer* renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
     //SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
     
+    SDL_Rect pixel;
+    pixel.w = SCALE;
+    pixel.h = SCALE;
+
     SDL_Event e;	
     for(;;) {
         while(SDL_PollEvent(&e) != 0) {
@@ -349,6 +343,7 @@ int main(int argc, char **argv) {
                         case SDLK_v: keyboard[0xf]=1; break;
                         default: break; 
                     } 
+                    break;
                 case SDL_KEYUP:
                     switch(e.key.keysym.sym) {
                         case SDLK_1: keyboard[0x0]=0; break;
@@ -378,13 +373,21 @@ int main(int argc, char **argv) {
         C8_tick();
         if (drawFlag) {
             drawFlag = 0;
-            drawme();
+            
+            for (int y = 0; y < C8_DISPLAY_HEIGHT; y++) {
+                for (int x=0; x<C8_DISPLAY_WIDTH; x++) {
+                    pixel.x = x*SCALE;
+                    pixel.y = y*SCALE;
+                    SDL_FillRect(surface, &pixel, vmem[x][y]?0xFFFFFF:0x0);
+                }
+            }
+            //draw();
+            SDL_UpdateWindowSurface(win);
+            //SDL_Flip(surface);
         }
         if (killFlag) break;
-        SDL_Delay(16);
+        SDL_Delay(1);
     }
-
-    drawme();
 
     SDL_FreeSurface(surface);
     SDL_DestroyWindow(win);
