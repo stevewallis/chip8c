@@ -22,6 +22,8 @@ uint8_t keyboard[16];
 uint8_t killFlag = 0;
 uint8_t drawFlag = 0;
 
+int EMULATOR_DELAY = 0;
+
 void init() {
     I = 0, sp = 0;
     timer_delay = 0, timer_sound = 0;
@@ -377,6 +379,8 @@ int main(int argc, char **argv) {
                         case SDLK_x: keyboard[0xd]=0; break; 
                         case SDLK_c: keyboard[0xe]=0; break; 
                         case SDLK_v: keyboard[0xf]=0; break;
+                        case SDLK_p: if(EMULATOR_DELAY>0)EMULATOR_DELAY--; break;
+                        case SDLK_o: EMULATOR_DELAY++; break;
                         default: break; 
                     } 
                     break;          
@@ -405,7 +409,7 @@ int main(int argc, char **argv) {
             SDL_RenderPresent(renderer);
         }
         if (killFlag) break;
-        SDL_Delay(5);
+        SDL_Delay(EMULATOR_DELAY);
     }
 
     SDL_DestroyRenderer(renderer);
