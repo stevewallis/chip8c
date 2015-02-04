@@ -325,13 +325,8 @@ int main(int argc, char **argv) {
     
     SDL_Init(SDL_INIT_VIDEO);
     SDL_Window* win = SDL_CreateWindow("Chip8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, W, H, SDL_WINDOW_SHOWN);
-    SDL_Surface* surface = SDL_GetWindowSurface(win);
-    
-    SDL_UpdateWindowSurface(win);
+    SDL_Renderer* renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
 
-    //SDL_Renderer* renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
-    //SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
-    
     SDL_Rect pixel;
     pixel.w = SCALE;
     pixel.h = SCALE;
@@ -394,22 +389,26 @@ int main(int argc, char **argv) {
         if (drawFlag) {
             drawFlag = 0;
             
+            SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+            SDL_RenderClear(renderer);
+
             for (int x=0; x<C8_DISPLAY_WIDTH; x++){
                 for (int y = 0; y < C8_DISPLAY_HEIGHT; y++){
                     pixel.x = x*SCALE;
                     pixel.y = y*SCALE;
-                    SDL_FillRect(surface, &pixel, vmem[x][y]?0xFFFFFF:0x0);
+                    if (vmem[x][y]) {
+                        SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL_RenderFillRect(renderer, &pixel);
+                    }
                 }
             }
-            //draw();
-            SDL_UpdateWindowSurface(win);
-            //SDL_Flip(surface);
+            SDL_RenderPresent(renderer);
         }
         if (killFlag) break;
         SDL_Delay(5);
     }
 
-    SDL_FreeSurface(surface);
+    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(win);
     SDL_Quit();
 
