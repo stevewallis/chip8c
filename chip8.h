@@ -13,6 +13,7 @@ void C8_Lookup_Fxxx();
 
 // OP codes
 void C8_OP_Invalid();
+void C8_OP_00E0(); // CLS
 void C8_OP_00EE(); // RET
 void C8_OP_1nnn(); // JMP
 void C8_OP_2nnn(); // CALL

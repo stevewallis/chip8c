@@ -36,7 +36,8 @@ void C8_Lookup_0xxx(){
     if (op&0x0f00) {
 
     }  else {
-        if ((op&0x00ff) == 0xee) {C8_OP_00EE();}
+        if ((op&0x00ff) == 0xee) {C8_OP_00EE(); return;}
+        if ((op&0x00ff) == 0xe0) {C8_OP_00E0(); return;}
     }
     if (op == 0x0000) C8_OP_Invalid();
 }
@@ -90,6 +91,15 @@ void C8_Lookup_Fxxx(){
         default:
             C8_OP_Invalid();
     }
+}
+
+void C8_OP_00E0() { // CLS
+    for (int x=0; x<C8_DISPLAY_WIDTH; x++) {
+        for (int y = 0; y < C8_DISPLAY_HEIGHT; y++) {
+            vmem[x][y] = 0;
+        }
+    }
+    drawFlag = 1;
 }
 
 void C8_OP_00EE() { // RET
@@ -194,16 +204,13 @@ void C8_OP_Dxyn() { // DRW x y n
     x = V[(op&0x0f00)>>8];
     y = V[(op&0x00f0)>>4];
     V[0xf] = 0;
-    
-    //printf("Draw sprite size %d at (%d, %d)\n", n,x,y);
 
     for(int i=0; i<n; i++) {
         b = memory[I+i];
         for(int j=0; j<8; j++) {
             if((b & (0x80 >> j)) != 0) {
-               //printf("%d, %d\n",x,y);
                if (vmem[(x+j)%C8_DISPLAY_WIDTH][(y+i)%C8_DISPLAY_HEIGHT] == 0x1) {
-                V[0xf] = 1;
+                    V[0xf] = 1;
                }
                vmem[(x+j)%C8_DISPLAY_WIDTH][(y+i)%C8_DISPLAY_HEIGHT] ^= 0x1;
             }
@@ -225,7 +232,21 @@ void C8_OP_Fx07() { // MOV DT x
 }
 
 void C8_OP_Fx0A() { // WAITKEY
-    printf("%04x : WAITKEY NOT DONE YET\n",op);
+    static uint8_t waiting;
+    static uint8_t saved_keyboard[16];
+    if (!waiting) {
+        waiting = 1;
+        memcpy(saved_keyboard, keyboard, 16);
+    } else {
+        for (uint8_t i=0; i<0xf;i++) {
+            if (keyboard[i]!=saved_keyboard[i]) {
+                V[(op&0x0f00)>>8] = i;
+                waiting = 0;
+                return;
+            }
+        }
+    }
+    PC-=2;
 }
 
 void C8_OP_Fx15() { // MOV x DT 
@@ -306,7 +327,6 @@ int main(int argc, char **argv) {
     SDL_Window* win = SDL_CreateWindow("Chip8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, W, H, SDL_WINDOW_SHOWN);
     SDL_Surface* surface = SDL_GetWindowSurface(win);
     
-    //SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0xff, 0xff, 0xff));
     SDL_UpdateWindowSurface(win);
 
     //SDL_Renderer* renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
@@ -374,8 +394,8 @@ int main(int argc, char **argv) {
         if (drawFlag) {
             drawFlag = 0;
             
-            for (int y = 0; y < C8_DISPLAY_HEIGHT; y++) {
-                for (int x=0; x<C8_DISPLAY_WIDTH; x++) {
+            for (int x=0; x<C8_DISPLAY_WIDTH; x++){
+                for (int y = 0; y < C8_DISPLAY_HEIGHT; y++){
                     pixel.x = x*SCALE;
                     pixel.y = y*SCALE;
                     SDL_FillRect(surface, &pixel, vmem[x][y]?0xFFFFFF:0x0);
@@ -386,7 +406,7 @@ int main(int argc, char **argv) {
             //SDL_Flip(surface);
         }
         if (killFlag) break;
-        SDL_Delay(1);
+        SDL_Delay(5);
     }
 
     SDL_FreeSurface(surface);
