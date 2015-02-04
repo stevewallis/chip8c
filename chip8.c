@@ -22,7 +22,7 @@ uint8_t keyboard[16];
 uint8_t killFlag = 0;
 uint8_t drawFlag = 0;
 
-int EMULATOR_DELAY = 0;
+int EMULATOR_DELAY = 2;
 
 void init() {
     I = 0, sp = 0;
